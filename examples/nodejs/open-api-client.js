@@ -72,7 +72,7 @@ class OpenApiClient {
     return this._post('/v1/movie/order/query', { order_no: orderNo }, 40000);
   }
 
-  /** 新手机号快速接入：自动注册、生成首组密钥并返回 7 天 token（公开） */
+  /** 快速获取密钥：提交用户本人未注册手机号，自动注册、生成首组密钥并返回 7 天 token（公开） */
   quickStart(mobile) {
     return this._post('/platform/quick-start', { mobile }, 30000, false);
   }

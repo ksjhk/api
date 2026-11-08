@@ -13,7 +13,7 @@
 ## 快速开始
 
 ```
-1. 注册    文档页填写新手机号，自动注册并生成首组 app_key / app_secret
+1. 获取密钥 让用户提供本人未注册手机号，程序调用 /platform/quick-start 自动注册并生成首组密钥
 2. 充值    控制台 → 余额充值（微信 / 支付宝扫码）
 3. 查询    会员权益、酒店、电影只读接口可匿名调用
 4. 下单    按下方签名规则拼 sign，调对应 order/create 接口
@@ -27,7 +27,7 @@ API 根地址：`https://www.kashijie.com/open-api`
 |---|---|---|---|
 | `/v1/goods` | GET | 公开 | 货源列表（分类、分页） |
 | `/v1/goods/detail` | GET | 公开 | 商品详情 |
-| `/platform/quick-start` | POST | 公开 | 新手机号自动注册、生成首组密钥并自动登录 |
+| `/platform/quick-start` | POST | 公开 | 快速获取密钥：新手机号自动注册、生成首组密钥并自动登录 |
 | `/v1/balance` | GET | 签名 | 余额查询 |
 | `/v1/order/create` | POST | 签名 | 创建订单（余额扣费、自动发货、失败自动退款） |
 | `/v1/order/query` | POST | 签名 | 订单查询（实时同步供货状态） |

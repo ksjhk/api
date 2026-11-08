@@ -69,7 +69,7 @@ class OpenApiClient:
         return self._post('/v1/movie/order/query', {'order_no': order_no}, 40)
 
     def quick_start(self, mobile):
-        """新手机号快速接入：自动注册、生成首组密钥并返回 7 天 token（公开）"""
+        """快速获取密钥：提交用户本人未注册手机号，自动注册、生成首组密钥并返回 7 天 token（公开）"""
         return self._post('/platform/quick-start', {'mobile': mobile}, need_sign=False)
 
     # ---------- 内部 ----------
