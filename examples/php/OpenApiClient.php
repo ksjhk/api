@@ -57,17 +57,57 @@ class OpenApiClient
         return $this->post('/v1/order/query', ['order_no' => $orderNo]);
     }
 
-    // ------------------------------------------------------------------
-
-    private function get($path, $params, $needSign)
+    /** 酒店查询：search / detail / rooms / validate（公开，无需密钥） */
+    public function hotelQuery($endpoint, array $params = [])
     {
-        if ($needSign) $params = $this->signedParams($params);
-        return $this->request('GET', $path . '?' . http_build_query($params), null);
+        return $this->get('/v1/hotel/' . $endpoint, $params, false, $endpoint === 'rooms' ? 60 : 30);
     }
 
-    private function post($path, $params)
+    public function hotelOrderCreate(array $params)
     {
-        return $this->request('POST', $path, $this->signedParams($params));
+        return $this->post('/v1/hotel/order/create', $params, 90);
+    }
+
+    public function hotelOrderQuery($orderNo)
+    {
+        return $this->post('/v1/hotel/order/query', ['order_no' => $orderNo], 40);
+    }
+
+    /** 电影查询：city / films / cinemas / schedule / show / seats 等（公开，无需密钥） */
+    public function movieQuery($endpoint, array $params = [])
+    {
+        return $this->post('/v1/movie/' . $endpoint, $params, 60, false);
+    }
+
+    /** buy_seats 必须是座位对象 JSON 数组字符串，确保座位数据参与签名 */
+    public function movieOrderCreate(array $params)
+    {
+        return $this->post('/v1/movie/order/create', $params, 90);
+    }
+
+    public function movieOrderQuery($orderNo)
+    {
+        return $this->post('/v1/movie/order/query', ['order_no' => $orderNo], 40);
+    }
+
+    /** 新手机号快速接入：自动注册、生成首组密钥并返回 7 天 token（公开） */
+    public function quickStart($mobile)
+    {
+        return $this->post('/platform/quick-start', ['mobile' => $mobile], 30, false);
+    }
+
+    // ------------------------------------------------------------------
+
+    private function get($path, $params, $needSign, $timeout = 30)
+    {
+        if ($needSign) $params = $this->signedParams($params);
+        return $this->request('GET', $path . '?' . http_build_query($params), null, $timeout);
+    }
+
+    private function post($path, $params, $timeout = 30, $needSign = true)
+    {
+        if ($needSign) $params = $this->signedParams($params);
+        return $this->request('POST', $path, $params, $timeout);
     }
 
     /**
@@ -88,12 +128,12 @@ class OpenApiClient
         return $params;
     }
 
-    private function request($method, $path, array $body = null)
+    private function request($method, $path, array $body = null, $timeout = 30)
     {
         $ch = curl_init($this->base . $path);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 30,
+            CURLOPT_TIMEOUT => $timeout,
             CURLOPT_CUSTOMREQUEST => $method,
         ]);
         if ($body !== null) {

@@ -2,9 +2,9 @@
 
 卡世界开放平台（[kashijie.com](https://www.kashijie.com)）对外接口的官方文档与调用示例。
 
-接入后你的系统可以直接调用 **200+ 品牌会员权益卡券货源**：视频会员、音乐会员、外卖红包、电影票、酒店民宿等，成本价结算，下单、发货、失败退款全自动。
+接入后你的系统可以直接调用 **200+ 品牌会员权益卡券货源**，也可以接入**酒店实时预订**与**电影票在线选座出票**。统一使用开放平台余额结算，履约失败自动退款。
 
-- 货源查询**免登录公开**，不注册也能先看货、先比价
+- 会员权益、酒店、电影票**只读查询免登录公开**，不注册也能先看货、先比价
 - 注册登录、创建密钥后，即可签名调用下单接口，余额扣费、随充随用
 - 每个密钥可设**加价倍数**（1.00~99.99），你拿到的报价 = 底价 × 倍数，方便你转售时统一加价
 
@@ -13,10 +13,10 @@
 ## 快速开始
 
 ```
-1. 注册    https://www.kashijie.com 注册开放平台账号（手机号 + 验证码，30 秒）
-2. 建密钥  控制台 → API 密钥 → 创建，拿到 app_key / app_secret
-3. 充值    控制台 → 余额充值（微信 / 支付宝扫码）
-4. 调用    按下方签名规则拼 sign，调 /v1/order/create 下单
+1. 注册    文档页填写新手机号，自动注册并生成首组 app_key / app_secret
+2. 充值    控制台 → 余额充值（微信 / 支付宝扫码）
+3. 查询    会员权益、酒店、电影只读接口可匿名调用
+4. 下单    按下方签名规则拼 sign，调对应 order/create 接口
 ```
 
 API 根地址：`https://www.kashijie.com/open-api`
@@ -27,11 +27,18 @@ API 根地址：`https://www.kashijie.com/open-api`
 |---|---|---|---|
 | `/v1/goods` | GET | 公开 | 货源列表（分类、分页） |
 | `/v1/goods/detail` | GET | 公开 | 商品详情 |
+| `/platform/quick-start` | POST | 公开 | 新手机号自动注册、生成首组密钥并自动登录 |
 | `/v1/balance` | GET | 签名 | 余额查询 |
 | `/v1/order/create` | POST | 签名 | 创建订单（余额扣费、自动发货、失败自动退款） |
 | `/v1/order/query` | POST | 签名 | 订单查询（实时同步供货状态） |
+| `/v1/hotel/search` 等 | GET / POST | 公开 | 酒店搜索、详情、房型报价、可订检查 |
+| `/v1/hotel/order/create` | POST | 签名 | 创建酒店订单（余额扣费、酒店确认） |
+| `/v1/hotel/order/query` | POST | 签名 | 查询酒店确认状态 |
+| `/v1/movie/city` 等 | POST | 公开 | 城市、影片、影院、场次、座位查询 |
+| `/v1/movie/order/create` | POST | 签名 | 锁座并创建电影票订单（余额扣费、自动出票） |
+| `/v1/movie/order/query` | POST | 签名 | 查询出票状态与取票码 |
 
-统一响应：`{"code":0,"message":"...","data":{...}}`，`code=0` 为成功。**金额单位一律为分。**
+卡券与下单接口统一响应：`{"code":0,"message":"...","data":{...}}`，`code=0` 为成功；酒店查询保留 `success` 字段，电影浏览查询成功时 `code=200`。**金额单位一律为分。**
 
 完整字段说明：[docs/api.md](docs/api.md)
 
@@ -56,7 +63,9 @@ API 根地址：`https://www.kashijie.com/open-api`
 | Node.js | [examples/nodejs](examples/nodejs) | 原生 https 零依赖 + demo |
 | curl | [examples/curl](examples/curl) | 命令行手工签名调试 |
 
-每个 demo 都演示：查货源（公开）→ 查余额（签名）→ 下单 → 查订单 的完整链路。
+每个 demo 都演示：查货源（公开）→ 查余额（签名）→ 下单 → 查订单 的完整链路。客户端同时提供 `quickStart`、`hotelQuery / hotelOrderCreate / hotelOrderQuery` 与 `movieQuery / movieOrderCreate / movieOrderQuery` 方法（Python 为下划线命名）。酒店、电影查询不签名，交易方法继续签名。
+
+酒店／电影票完整参数见 [docs/api.md](docs/api.md#六酒店预订-api查询公开交易需签名) 和 [电影接口说明](docs/api.md#七电影票-api查询公开交易需签名)。
 
 ## 错误码
 

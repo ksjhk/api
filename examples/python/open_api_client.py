@@ -46,16 +46,43 @@ class OpenApiClient:
         """订单查询（签名）"""
         return self._post('/v1/order/query', {'order_no': order_no})
 
+    def hotel_query(self, endpoint, params=None):
+        """酒店查询：search / detail / rooms / validate（公开，无需密钥）"""
+        timeout = 60 if endpoint == 'rooms' else 30
+        return self._get('/v1/hotel/' + endpoint, params or {}, False, timeout)
+
+    def hotel_order_create(self, params):
+        return self._post('/v1/hotel/order/create', params, 90)
+
+    def hotel_order_query(self, order_no):
+        return self._post('/v1/hotel/order/query', {'order_no': order_no}, 40)
+
+    def movie_query(self, endpoint, params=None):
+        """电影查询：city / films / cinemas / schedule / show / seats 等（公开，无需密钥）"""
+        return self._post('/v1/movie/' + endpoint, params or {}, 60, need_sign=False)
+
+    def movie_order_create(self, params):
+        """buy_seats 必须是座位对象 JSON 数组字符串，确保参与签名"""
+        return self._post('/v1/movie/order/create', params, 90)
+
+    def movie_order_query(self, order_no):
+        return self._post('/v1/movie/order/query', {'order_no': order_no}, 40)
+
+    def quick_start(self, mobile):
+        """新手机号快速接入：自动注册、生成首组密钥并返回 7 天 token（公开）"""
+        return self._post('/platform/quick-start', {'mobile': mobile}, need_sign=False)
+
     # ---------- 内部 ----------
 
-    def _get(self, path, params, need_sign):
+    def _get(self, path, params, need_sign, timeout=30):
         if need_sign:
             params = self._signed(params)
-        r = requests.get(self.base + path, params=params, timeout=30)
+        r = requests.get(self.base + path, params=params, timeout=timeout)
         return r.json()
 
-    def _post(self, path, params):
-        r = requests.post(self.base + path, json=self._signed(params), timeout=30)
+    def _post(self, path, params, timeout=30, need_sign=True):
+        body = self._signed(params) if need_sign else params
+        r = requests.post(self.base + path, json=body, timeout=timeout)
         return r.json()
 
     def _signed(self, params: dict) -> dict:

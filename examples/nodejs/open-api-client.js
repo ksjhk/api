@@ -45,16 +45,49 @@ class OpenApiClient {
     return this._post('/v1/order/query', { order_no: orderNo });
   }
 
-  // ------------------------------------------------------------------
-
-  _get(path, params, needSign) {
-    if (needSign) params = this._signed(params);
-    const qs = new URLSearchParams(params).toString();
-    return this._request('GET', `${path}?${qs}`, null);
+  /** 酒店查询：search / detail / rooms / validate（公开，无需密钥） */
+  hotelQuery(endpoint, params = {}) {
+    return this._get('/v1/hotel/' + endpoint, params, false, endpoint === 'rooms' ? 60000 : 30000);
   }
 
-  _post(path, params) {
-    return this._request('POST', path, this._signed(params));
+  hotelOrderCreate(params) {
+    return this._post('/v1/hotel/order/create', params, 90000);
+  }
+
+  hotelOrderQuery(orderNo) {
+    return this._post('/v1/hotel/order/query', { order_no: orderNo }, 40000);
+  }
+
+  /** 电影查询：city / films / cinemas / schedule / show / seats 等（公开，无需密钥） */
+  movieQuery(endpoint, params = {}) {
+    return this._post('/v1/movie/' + endpoint, params, 60000, false);
+  }
+
+  /** buy_seats 必须是座位对象 JSON 数组字符串，确保座位数据参与签名 */
+  movieOrderCreate(params) {
+    return this._post('/v1/movie/order/create', params, 90000);
+  }
+
+  movieOrderQuery(orderNo) {
+    return this._post('/v1/movie/order/query', { order_no: orderNo }, 40000);
+  }
+
+  /** 新手机号快速接入：自动注册、生成首组密钥并返回 7 天 token（公开） */
+  quickStart(mobile) {
+    return this._post('/platform/quick-start', { mobile }, 30000, false);
+  }
+
+  // ------------------------------------------------------------------
+
+  _get(path, params, needSign, timeout = 30000) {
+    if (needSign) params = this._signed(params);
+    const qs = new URLSearchParams(params).toString();
+    return this._request('GET', `${path}?${qs}`, null, timeout);
+  }
+
+  _post(path, params, timeout = 30000, needSign = true) {
+    const body = needSign ? this._signed(params) : params;
+    return this._request('POST', path, body, timeout);
   }
 
   /**
@@ -71,7 +104,7 @@ class OpenApiClient {
     return p;
   }
 
-  _request(method, path, body) {
+  _request(method, path, body, timeout = 30000) {
     const url = new URL(this.base + path);
     const payload = body ? JSON.stringify(body) : null;
     const options = {
@@ -81,7 +114,7 @@ class OpenApiClient {
       headers: payload
         ? { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) }
         : {},
-      timeout: 30000,
+      timeout,
     };
     return new Promise((resolve, reject) => {
       const req = https.request(options, (res) => {
