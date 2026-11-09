@@ -45,11 +45,13 @@ API 根地址：`https://www.kashijie.com/open-api`
 ## 签名规则（30 秒看懂）
 
 ```
-1. 取全部请求参数，排除 sign 本身
-2. 跳过空值与数组
+1. 取全部请求参数，排除 sign 本身；query 与 body 混用时两处参数必须合并
+2. 跳过空值、数组与对象
 3. 按参数名升序拼接：k1=v1&k2=v2
 4. 末尾追加 &secret=你的app_secret
 5. sign = md5(拼接串)，小写 32 位 hex
+
+query、JSON body、表单三种方式均可；鉴权参数放 query、业务参数放 body 时，业务参数也必须参与签名。
 ```
 
 每个签名请求必带：`app_key`、`timestamp`（秒级，与服务器偏差超 10 分钟拒绝）、`sign`。
